@@ -1,0 +1,32 @@
+# Publishes masterplan.zip (the skill folder, ready to upload in Claude under
+# Customize → Skills) as a release asset whenever a version tag is pushed.
+name: Release skill zip
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build masterplan.zip
+        run: cd skills && zip -r ../masterplan.zip masterplan
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" masterplan.zip --clobber
+          else
+            gh release create "$TAG" masterplan.zip \
+              --title "Masterplan $TAG" \
+              --notes "Upload \`masterplan.zip\` in Claude under Customize → Skills. For other agents, run \`npx skills add ezzuldinSt/masterplan\`."
+          fi
