@@ -1,13 +1,23 @@
 # Publishes masterplan.zip (the skill folder, ready to upload in Claude under
-# Customize → Skills) as a release asset whenever a version tag is pushed.
+# Customize → Skills) as a GitHub release. The release version comes from
+# metadata.version in skills/masterplan/SKILL.md: bump it to cut a new release.
+# Pushes that change the skill without a bump refresh the zip on the current release.
 name: Release skill zip
 
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
+    paths:
+      - "skills/masterplan/**"
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -15,18 +25,26 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Read the version from SKILL.md
+        id: version
+        run: |
+          version=$(grep -m1 -E '^[[:space:]]+version:' skills/masterplan/SKILL.md | sed -E 's/.*version:[[:space:]]*"?([^"[:space:]]+)"?[[:space:]]*$/\1/')
+          test -n "$version" || { echo "::error::metadata.version is missing from skills/masterplan/SKILL.md"; exit 1; }
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
       - name: Build masterplan.zip
         run: cd skills && zip -r ../masterplan.zip masterplan
 
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" masterplan.zip --clobber
           else
             gh release create "$TAG" masterplan.zip \
+              --target "$GITHUB_SHA" \
               --title "Masterplan $TAG" \
               --notes "Upload \`masterplan.zip\` in Claude under Customize → Skills. For other agents, run \`npx skills add ezzuldinSt/masterplan\`."
           fi
