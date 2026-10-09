@@ -33,7 +33,7 @@ git clone https://github.com/ezzuldinSt/masterplan.git
 cp -r masterplan/skills/masterplan ~/.claude/skills/
 ```
 
-**Claude on the web or desktop:** download [`masterplan.zip`](https://github.com/ezzuldinSt/masterplan/releases/latest/download/masterplan.zip), open **Customize → Skills**, click **+**, then **Create skill → Upload a skill**, and choose the zip. Skills need code execution, which you can turn on under **Settings → Capabilities**.
+**Claude on the web or desktop:** download [`masterplan.zip`](https://github.com/ezzuldinSt/masterplan/raw/main/masterplan.zip), open **Customize → Skills**, click **+**, then **Create skill → Upload a skill**, and choose the zip. Skills need code execution, which you can turn on under **Settings → Capabilities**.
 
 ## Use it
 
@@ -107,6 +107,7 @@ Ticked-off steps don't prove that a milestone works. After its last step, a revi
 
 ```text
 skills/masterplan/SKILL.md   the skill
+masterplan.zip               the same skill folder, zipped for uploading to Claude
 assets/                      illustrations for this README
 ```
 
